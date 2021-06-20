@@ -1,0 +1,72 @@
+<div>
+    <%= form_with url: root_path, method: :get do |f| %>
+        <%= f.select :searchKey, options_for_select([["選擇搜尋key值", ""], "cam_id", "area_id", "user_tracker_id", "timestamp", "detection_count", "snapshot"]), id: "searchKey" %>
+        <%= f.text_field :searchVal %>
+        <%= f.text_field :searchStartDate, type: :date, id: :searchStartDate, style: "display: none" %>
+        <%= f.text_field :searchEndDate, type: :date, id: :searchEndDate, style: "display: none" %>
+        <%= f.submit "送出" %>
+    <% end %>
+</div>
+
+<div style="text-align: center; width: 100%; display: flex;justify-content: center;margin-top: 10%;flex-direction: column;">
+    <% currentPath = "" %>
+    <%
+        @indexParams.each do |key, val|
+            if (key != "pageNum")
+                if (currentPath == "")
+                    currentPath += "?#{key}=#{val}&"
+                else
+                    currentPath += "#{key}=#{val}&"
+                end
+            end
+        end
+        if (currentPath == "")
+            currentPath = "?"
+        end
+    %>
+    <table>
+        <tr style="margin-bottom: 5%">
+            <td><%= link_to 'cam_id', "#{currentPath.gsub(/orderBy=[a-z_]+\&sort=[(ASC)|DESC)]+\&/, '')}orderBy=cam_id&sort=#{@sort == "ASC" ? "DESC" : "ASC" }" %></td>
+            <td><%= link_to 'area_id', "#{currentPath.gsub(/orderBy=[a-z_]+\&sort=[(ASC)|DESC)]+\&/, '')}orderBy=area_id&sort=#{@sort == "ASC" ? "DESC" : "ASC" }" %></td>
+            <td><%= link_to 'user_tracker_id', "#{currentPath.gsub(/orderBy=[a-z_]+\&sort=[(ASC)|DESC)]+\&/, '')}orderBy=user_tracker_id&sort=#{@sort == "ASC" ? "DESC" : "ASC" }" %></td>
+            <td><%= link_to 'timestamp', "#{currentPath.gsub(/orderBy=[a-z_]+\&sort=[(ASC)|DESC)]+\&/, '')}orderBy=timestamp&sort=#{@sort == "ASC" ? "DESC" : "ASC" }" %></td>
+            <td><%= link_to 'detection_count', "#{currentPath.gsub(/orderBy=[a-z_]+\&sort=[(ASC)|DESC)]+\&/, '')}orderBy=detection_count&sort=#{@sort == "ASC" ? "DESC" : "ASC" }" %></td>
+            <td><%= link_to 'snapshot', "#{currentPath.gsub(/orderBy=[a-z_]+\&sort=[(ASC)|DESC)]+\&/, '')}orderBy=snapshot&sort=#{@sort == "ASC" ? "DESC" : "ASC" }" %></td>
+        </tr>
+        <% @data.each do |datum|%>
+            <tr>
+                <td><%= datum.cam_id %></td>
+                <td><%= datum.area_id %></td>
+                <td><%= datum.user_tracker_id %></td>
+                <td><%= datum.timestamp %></td>
+                <td><%= datum.detection_count %></td>
+                <td><%= image_tag datum.snapshot, lazy: true %></td>
+            </tr>
+        <% end %>
+    </table>
+    <div>
+        <% if (@currentPage > 0) %>
+            <%= link_to "<", "#{currentPath.gsub(/pageNum=\d+\&/, '')}pageNum=#{@currentPage}"%>
+        <% end %>
+        <% totalPageCount = (@totalCount / 30) %>
+        <% if totalPageCount > 10 && totalPageCount - @currentPage + 1 >= 10 %>
+            <% pageArr = @currentPage + 1 > 10 ? (@currentPage+1 - 4..@currentPage +1 + 4).to_a : (1..10).to_a%>
+        <% end %>
+        <% if totalPageCount <= 10%>
+            <% pageArr = (1..totalPageCount).to_a %>
+        <% end %>
+        <% pageArr.each do |num| %>
+            <% if (@currentPage + 1 == num)%>
+                <span style="color: red"><%= num %></span>
+            <% else %>
+                <%= link_to "#{num}", "#{currentPath.gsub(/pageNum=\d+\&/, '')}pageNum=#{num}" %>
+            <% end %>
+        <% end %>
+        <% if ( totalPageCount - @currentPage > 0) %>
+            <%= link_to ">", "#{currentPath.gsub(/pageNum=\d+\&/, '')}pageNum=#{@currentPage+2}"%>
+        <% end %>
+    </div>
+
+</div>
+
+<%= javascript_pack_tag 'customer_info', 'data-turbolinks-track': 'reload' %>
